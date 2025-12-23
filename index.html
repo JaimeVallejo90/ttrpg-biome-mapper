@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Biome Mapper</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="title">
+        <div class="eyebrow">Earth-scale</div>
+        <h1>Biome Mapper</h1>
+        <p>Paint land and mountains, then generate biomes.</p>
+      </div>
+      <div class="controls">
+        <label class="control">
+          <span>Mode</span>
+          <select id="brushMode">
+            <option value="land">Land</option>
+            <option value="mountain">Mountains</option>
+          </select>
+        </label>
+        <label class="control">
+          <span>Brush</span>
+          <input id="brushSize" type="range" min="1" max="40" value="14">
+          <span class="value" id="brushSizeVal">14</span>
+        </label>
+        <label class="control">
+          <span>View</span>
+          <select id="viewMode">
+            <option value="editor" selected>Editor</option>
+            <option value="biome">Biomes</option>
+          </select>
+        </label>
+        <div class="buttons">
+          <button class="primary" id="computeBtn">Generate biomes</button>
+          <button id="clearBtn">Clear</button>
+        </div>
+      </div>
+      <div class="climate">
+        <div class="climate-title">Climate distances</div>
+        <div class="controls climate-controls">
+          <label class="control control-wide has-tip" data-tip="How far inland coastal humidity applies.">
+            <span>Coastal influence</span>
+            <input id="coastRange" type="range" min="0" max="120" value="12">
+            <span class="value" id="coastRangeVal">12</span>
+          </label>
+          <label class="control control-wide has-tip" data-tip="Distance from coast before interior dryness applies.">
+            <span>Interior dryness</span>
+            <input id="interiorDist" type="range" min="10" max="180" value="54">
+            <span class="value" id="interiorDistVal">54</span>
+          </label>
+          <label class="control control-wide has-tip" data-tip="How far mountains affect rain shadows.">
+            <span>Rain shadow reach</span>
+            <input id="shadowRange" type="range" min="2" max="80" value="18">
+            <span class="value" id="shadowRangeVal">18</span>
+          </label>
+          <label class="control control-wide has-tip" data-tip="How far winds sample ocean moisture.">
+            <span>Ocean wind reach</span>
+            <input id="oceanWind" type="range" min="10" max="120" value="42">
+            <span class="value" id="oceanWindVal">42</span>
+          </label>
+        </div>
+      </div>
+      <div class="hint">Left click paints, right click erases, wheel changes brush size.</div>
+    </header>
+    <main class="canvas-shell">
+      <div class="map-layout">
+        <div class="canvas-wrap">
+          <canvas id="c" width="1080" height="540"></canvas>
+          <div class="inspector" id="biomeInspector" aria-live="polite">
+            <span class="sw inspector-swatch"></span>
+            <div class="inspector-copy">
+              <div class="inspector-label">Biome</div>
+              <div class="inspector-name">Ocean</div>
+            </div>
+          </div>
+        </div>
+        <section class="legend-block">
+          <div class="legend-title">Biome legend</div>
+          <div class="legend-hint">Hover the map for names. Click a biome to isolate it. Press Esc to reset.</div>
+          <div class="legend" id="legend"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="./sim.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
