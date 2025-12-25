@@ -83,7 +83,6 @@
     ]);
 
     const LEGEND_GROUPS = [
-      { title: "Ocean", items: ["Ocean"] },
       {
         title: "Polar & Ice",
         items: ["Permanent ice", "Seasonal ice", "Wet glaciers", "Polar desert", "Polar tundra"],
@@ -154,9 +153,12 @@
       pointer: { x: 0, y: 0, active: false },
       hoverBiome: null,
       focusBiome: null,
+      lastPaint: null,
     };
 
     let renderPending = false;
+    let paintPending = false;
+    let queuedPaint = null;
 
     function updateBrushSize() {
       state.brushSize = parseInt(ui.brushSize.value, 10);
@@ -281,6 +283,39 @@
 
       if (changed) state.needsCompute = true;
       scheduleRender();
+    }
+
+    function paintLine(from, to) {
+      const dx = to.gx - from.gx;
+      const dy = to.gy - from.gy;
+      const dist = Math.hypot(dx, dy);
+      if (dist === 0) {
+        paintAt(from.gx, from.gy);
+        return;
+      }
+      const step = Math.max(1, Math.floor(state.brushSize * 0.5));
+      const steps = Math.ceil(dist / step);
+      for (let s = 0; s <= steps; s += 1) {
+        const t = s / steps;
+        const gx = Math.round(from.gx + dx * t);
+        const gy = Math.round(from.gy + dy * t);
+        paintAt(gx, gy);
+      }
+    }
+
+    function queuePaint(gx, gy) {
+      queuedPaint = { gx, gy };
+      if (paintPending) return;
+      paintPending = true;
+      requestAnimationFrame(() => {
+        paintPending = false;
+        if (!queuedPaint || !state.painting) return;
+        const target = queuedPaint;
+        queuedPaint = null;
+        const last = state.lastPaint || target;
+        paintLine(last, target);
+        state.lastPaint = target;
+      });
     }
 
     function drawGridToCanvas(drawFn) {
@@ -473,6 +508,8 @@
       if (!state.painting) return;
       state.painting = false;
       state.erasing = false;
+      state.lastPaint = null;
+      queuedPaint = null;
       if (state.viewMode === "biome" && state.needsCompute) {
         compute();
       }
@@ -495,6 +532,7 @@
       state.painting = true;
       state.erasing = button === 2;
       const { gx, gy } = clientToGrid(event.clientX, event.clientY);
+      state.lastPaint = { gx, gy };
       paintAt(gx, gy);
     }
 
@@ -523,10 +561,16 @@
         stopPainting(event);
         return;
       }
-      paintAt(gx, gy);
+      queuePaint(gx, gy);
     }
 
     function handlePointerUp(event) {
+      if (state.painting && event && typeof event.clientX === "number") {
+        const { gx, gy } = clientToGrid(event.clientX, event.clientY);
+        const last = state.lastPaint || { gx, gy };
+        paintLine(last, { gx, gy });
+        state.lastPaint = { gx, gy };
+      }
       stopPainting(event);
     }
 
